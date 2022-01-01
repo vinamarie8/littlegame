@@ -25,7 +25,7 @@ var game = new Phaser.Game(config);
 function preload() {
   this.load.image("background", "assets/background.png");
   this.load.image("portal", "assets/portal.png");
-  this.load.image("ep", "assets/ep-v3.png");
+  this.load.image("ep", "assets/ep.png");
   this.load.image("rocket-pink", "assets/rocket-pink.png");
   this.load.image("rocket-green", "assets/rocket-green.png");
 }
