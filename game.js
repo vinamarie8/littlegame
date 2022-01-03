@@ -21,8 +21,15 @@ var config = {
 var game = new Phaser.Game(config);
 var gameOver = false;
 var canResume = false;
+
+var rocketAsset = "rocket-green";
 var rocketCount = 0;
 var rocketVelocity = 50;
+
+var level = 1;
+var levelText;
+var score = 0;
+var scoreText;
 
 function preload() {
   this.load.image("background", "assets/background.png");
@@ -37,6 +44,14 @@ function create() {
   this.add.image(216, 240, "background");
   startPortal = this.physics.add.sprite(216, 460, "portal");
   endPortal = this.physics.add.sprite(216, 20, "portal");
+
+  // Level
+  levelText = this.add.text(5, 5, "level: " + level, { fontSize: "30px", fill: "#d4996a" });
+  levelText.setDepth(9999999999);
+
+  // Score
+  scoreText = this.add.text(5, 35, "score: " + score, { fontSize: "30px", fill: "#d4996a" });
+  scoreText.setDepth(9999999999);
 
   // Rockets
   rockets = this.physics.add.group();
@@ -62,7 +77,7 @@ function toRadians(angle) {
 }
 
 function setRocketVelocity(rocket, angle) {
-  var velocity = rocketVelocity + Phaser.Math.Between(-10, 10);
+  var velocity = rocketVelocity + Phaser.Math.Between(-15, 15);
   rocket.setAngle(angle);
   rocket.setVelocity(velocity * Math.cos(toRadians(angle)), velocity * Math.sin(toRadians(angle)));
 }
@@ -73,15 +88,14 @@ function updateRockets(rockets) {
   for (i = 0; i < rocketCount; i++) {
     var rocket;
     if (i % 2 == 0) {
-      rocket = rockets.create(-110, Phaser.Math.Between(50, 400), "rocket-green");
+      rocket = rockets.create(-110, Phaser.Math.Between(50, 400), rocketAsset);
       rocket.setData("left", true);
-      // Set velocity
       var angle = Phaser.Math.Between(-60, 60);
       setRocketVelocity(rocket, angle);
     } else {
-      rocket = rockets.create(430, Phaser.Math.Between(50, 400), "rocket-pink");
+      rocketAsset = rocketAsset == "rocket-green" ? "rocket-pink" : "rocket-green";
+      rocket = rockets.create(430, Phaser.Math.Between(50, 400), rocketAsset);
       rocket.setData("left", false);
-      // Set velocity
       var angle = Phaser.Math.Between(-120, -240);
       setRocketVelocity(rocket, angle);
     }
@@ -93,10 +107,16 @@ function reachEndPortal(player, portal) {
   rockets.clear(true, true);
   player.body.x = 210;
   player.body.y = 438;
+  level++;
+  score = score + 10;
+  levelText.setText("level: " + level);
+  scoreText.setText("score: " + score);
 }
 
 function hitRocket(player, rocket) {
   this.physics.pause();
+
+  rocket.setTint(0xff0000);
 
   gameOver = true;
 }
@@ -123,8 +143,6 @@ function update() {
   rockets.getChildren().map((rocket) => {
     repositionRocket(this.scene, rocket);
   });
-  /*repositionRocket(this.scene, rockets.getMatching("name", "greenRocket1")[0]);*/
-
   if (this.physics.world.isPaused && !gameOver) {
     if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
       canResume = true;
