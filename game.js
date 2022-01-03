@@ -21,6 +21,8 @@ var config = {
 var game = new Phaser.Game(config);
 var gameOver = false;
 var canResume = false;
+var rocketCount = 0;
+var rocketVelocity = 50;
 
 function preload() {
   this.load.image("background", "assets/background.png");
@@ -38,25 +40,13 @@ function create() {
 
   // Rockets
   rockets = this.physics.add.group();
-  var rocketGreen1 = rockets.create(350, 100, "rocket-green");
-  var rocketPink1 = rockets.create(75, 100, "rocket-pink");
-  var rocketGreen2 = rockets.create(-50, 225, "rocket-green");
-  var rocketPink2 = rockets.create(225, 225, "rocket-pink");
-  var rocketGreen3 = rockets.create(350, 350, "rocket-green");
-  var rocketPink3 = rockets.create(75, 350, "rocket-pink");
-
-  rocketGreen1.setName("greenRocket1");
-  rocketPink1.setName("pinkRocket1");
-  rocketGreen2.setName("greenRocket2");
-  rocketPink2.setName("pinkRocket2");
-  rocketGreen3.setName("greenRocket3");
-  rocketPink3.setName("pinkRocket3");
-  rockets.setVelocityX(50);
+  updateRockets(rockets);
 
   // Character
   player = this.physics.add.sprite(216, 444, "ep");
   player.setCollideWorldBounds(true);
   player.setSize(12, 12);
+  player.setDepth(99999999999);
 
   // Character and Rocket
   this.physics.add.collider(player, rockets, hitRocket, null, this);
@@ -67,8 +57,40 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 }
 
+function toRadians(angle) {
+  return angle * (Math.PI / 180);
+}
+
+function setRocketVelocity(rocket, angle) {
+  var velocity = rocketVelocity + Phaser.Math.Between(-10, 10);
+  rocket.setAngle(angle);
+  rocket.setVelocity(velocity * Math.cos(toRadians(angle)), velocity * Math.sin(toRadians(angle)));
+}
+
+function updateRockets(rockets) {
+  rocketCount++;
+  rocketVelocity = rocketVelocity + 5;
+  for (i = 0; i < rocketCount; i++) {
+    var rocket;
+    if (i % 2 == 0) {
+      rocket = rockets.create(-110, Phaser.Math.Between(50, 400), "rocket-green");
+      rocket.setData("left", true);
+      // Set velocity
+      var angle = Phaser.Math.Between(-60, 60);
+      setRocketVelocity(rocket, angle);
+    } else {
+      rocket = rockets.create(430, Phaser.Math.Between(50, 400), "rocket-pink");
+      rocket.setData("left", false);
+      // Set velocity
+      var angle = Phaser.Math.Between(-120, -240);
+      setRocketVelocity(rocket, angle);
+    }
+  }
+}
+
 function reachEndPortal(player, portal) {
   this.physics.pause();
+  rockets.clear(true, true);
   player.body.x = 210;
   player.body.y = 438;
 }
@@ -85,7 +107,12 @@ function checkInWorld(scene, rocket) {
 
 function repositionRocket(scene, rocket) {
   if (!checkInWorld(scene, rocket)) {
-    rocket.body.x = -110;
+    if (rocket.getData("left")) {
+      rocket.body.x = -110;
+    } else {
+      rocket.body.x = 430;
+    }
+    rocket.body.y = Phaser.Math.Between(50, 400);
   }
 }
 
@@ -93,19 +120,22 @@ function update() {
   player.setDamping(true);
   const dragValue = 0.15;
 
-  repositionRocket(this.scene, rockets.getMatching("name", "greenRocket1")[0]);
-  repositionRocket(this.scene, rockets.getMatching("name", "pinkRocket1")[0]);
-  repositionRocket(this.scene, rockets.getMatching("name", "greenRocket2")[0]);
-  repositionRocket(this.scene, rockets.getMatching("name", "pinkRocket2")[0]);
-  repositionRocket(this.scene, rockets.getMatching("name", "greenRocket3")[0]);
-  repositionRocket(this.scene, rockets.getMatching("name", "pinkRocket3")[0]);
+  rockets.getChildren().map((rocket) => {
+    repositionRocket(this.scene, rocket);
+  });
+  /*repositionRocket(this.scene, rockets.getMatching("name", "greenRocket1")[0]);*/
 
   if (this.physics.world.isPaused && !gameOver) {
     if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
       canResume = true;
     }
     if (canResume && (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown || cursors.down.isDown)) {
+      rockets = this.physics.add.group();
+      updateRockets(rockets);
+      // Character and Rocket
+      this.physics.add.collider(player, rockets, hitRocket, null, this);
       this.physics.resume();
+
       canResume = false;
     }
   }
