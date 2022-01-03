@@ -2,8 +2,6 @@ console.log(Phaser.AUTO);
 
 var config = {
   type: Phaser.AUTO,
-  //width: 144,
-  //height: 160,
   width: 432,
   height: 480,
   physics: {
@@ -21,6 +19,8 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+var gameOver = false;
+var canResume = false;
 
 function preload() {
   this.load.image("background", "assets/background.png");
@@ -31,12 +31,10 @@ function preload() {
 }
 
 function create() {
-  // Background
+  // Environment
   this.add.image(216, 240, "background");
-  // Start portal
-  this.add.image(216, 460, "portal");
-  // End portal
-  this.add.image(216, 20, "portal");
+  startPortal = this.physics.add.sprite(216, 460, "portal");
+  endPortal = this.physics.add.sprite(216, 20, "portal");
 
   // Rockets
   rockets = this.physics.add.group();
@@ -53,22 +51,30 @@ function create() {
   rocketPink2.setName("pinkRocket2");
   rocketGreen3.setName("greenRocket3");
   rocketPink3.setName("pinkRocket3");
-
   rockets.setVelocityX(50);
 
   // Character
   player = this.physics.add.sprite(216, 444, "ep");
   player.setCollideWorldBounds(true);
   player.setSize(12, 12);
+
+  // Character and Rocket
   this.physics.add.collider(player, rockets, hitRocket, null, this);
+
+  // Character and End Portal
+  this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
 
   cursors = this.input.keyboard.createCursorKeys();
 }
 
+function reachEndPortal(player, portal) {
+  this.physics.pause();
+  player.body.x = 210;
+  player.body.y = 438;
+}
+
 function hitRocket(player, rocket) {
   this.physics.pause();
-
-  player.anims.play("turn");
 
   gameOver = true;
 }
@@ -93,6 +99,16 @@ function update() {
   repositionRocket(this.scene, rockets.getMatching("name", "pinkRocket2")[0]);
   repositionRocket(this.scene, rockets.getMatching("name", "greenRocket3")[0]);
   repositionRocket(this.scene, rockets.getMatching("name", "pinkRocket3")[0]);
+
+  if (this.physics.world.isPaused && !gameOver) {
+    if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
+      canResume = true;
+    }
+    if (canResume && (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown || cursors.down.isDown)) {
+      this.physics.resume();
+      canResume = false;
+    }
+  }
 
   // Left/right
   if (cursors.left.isDown) {
