@@ -37,6 +37,7 @@ function preload() {
   this.load.image("ep", "assets/ep.png");
   this.load.image("rocket-pink", "assets/rocket-pink.png");
   this.load.image("rocket-green", "assets/rocket-green.png");
+  this.load.image("star", "assets/star.png");
 }
 
 function create() {
@@ -44,6 +45,10 @@ function create() {
   this.add.image(216, 240, "background");
   startPortal = this.physics.add.sprite(216, 460, "portal");
   endPortal = this.physics.add.sprite(216, 20, "portal");
+
+  // Stars
+  stars = this.physics.add.group();
+  updateStars(stars);
 
   // Level
   levelText = this.add.text(5, 5, "level: " + level, { fontSize: "30px", fill: "#d4996a" });
@@ -63,6 +68,9 @@ function create() {
   player.setSize(12, 12);
   player.setDepth(99999999999);
 
+  // Character and Star
+  this.physics.add.overlap(player, stars, collectStar, null, this);
+
   // Character and Rocket
   this.physics.add.collider(player, rockets, hitRocket, null, this);
 
@@ -70,6 +78,35 @@ function create() {
   this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
 
   cursors = this.input.keyboard.createCursorKeys();
+}
+
+function collectStar(player, star) {
+  star.disableBody(true, true);
+  score += 5;
+  scoreText.setText("score: " + score);
+}
+
+function updateStars(stars) {
+  stars.createMultiple({
+    key: "star",
+    repeat: 3,
+    setXY: { x: 80, y: 80, stepX: 100 },
+  });
+  stars.createMultiple({
+    key: "star",
+    repeat: 3,
+    setXY: { x: 80, y: 200, stepX: 100 },
+  });
+  stars.createMultiple({
+    key: "star",
+    repeat: 3,
+    setXY: { x: 80, y: 320, stepX: 100 },
+  });
+  stars.getChildren().map((star) => {
+    star.setVelocity(Phaser.Math.Between(-20, 20), Phaser.Math.Between(-20, 20));
+    star.setCollideWorldBounds(true);
+    star.setBounce(1);
+  });
 }
 
 function toRadians(angle) {
@@ -105,10 +142,16 @@ function updateRockets(rockets) {
 function reachEndPortal(player, portal) {
   this.physics.pause();
   rockets.clear(true, true);
+  stars.clear(true, true);
+
+  // Reposition player
   player.body.x = 210;
   player.body.y = 438;
+  player.setVelocity(0, 0);
+
+  // Update text
   level++;
-  score = score + 10;
+  score += 10;
   levelText.setText("level: " + level);
   scoreText.setText("score: " + score);
 }
@@ -145,16 +188,16 @@ function update() {
   });
   if (this.physics.world.isPaused && !gameOver) {
     if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
-      canResume = true;
-    }
-    if (canResume && (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown || cursors.down.isDown)) {
+      // Recreate Stars
+      stars = this.physics.add.group();
+      updateStars(stars);
+      this.physics.add.overlap(player, stars, collectStar, null, this);
+
+      // Recreate Rockets
       rockets = this.physics.add.group();
       updateRockets(rockets);
-      // Character and Rocket
       this.physics.add.collider(player, rockets, hitRocket, null, this);
       this.physics.resume();
-
-      canResume = false;
     }
   }
 
