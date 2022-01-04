@@ -52,11 +52,11 @@ function create() {
 
   // Level
   levelText = this.add.text(5, 5, "level: " + level, { fontSize: "30px", fill: "#d4996a" });
-  levelText.setDepth(9999999999);
+  levelText.setDepth(999999999999);
 
   // Score
   scoreText = this.add.text(5, 35, "score: " + score, { fontSize: "30px", fill: "#d4996a" });
-  scoreText.setDepth(9999999999);
+  scoreText.setDepth(999999999999);
 
   // Rockets
   rockets = this.physics.add.group();
@@ -120,7 +120,7 @@ function setRocketVelocity(rocket, angle) {
 }
 
 function updateRockets(rockets) {
-  rocketCount++;
+  if (level % 2 == 0 || level == 1) rocketCount++;
   rocketVelocity = rocketVelocity + 5;
   for (i = 0; i < rocketCount; i++) {
     var rocket;
@@ -139,21 +139,38 @@ function updateRockets(rockets) {
   }
 }
 
-function reachEndPortal(player, portal) {
-  this.physics.pause();
-  rockets.clear(true, true);
-  stars.clear(true, true);
-
-  // Reposition player
-  player.body.x = 210;
-  player.body.y = 438;
-  player.setVelocity(0, 0);
-
+function tweenComplete() {
   // Update text
   level++;
   score += 10;
   levelText.setText("level: " + level);
   scoreText.setText("score: " + score);
+
+  canResume = true;
+}
+
+function reachEndPortal(player, portal) {
+  this.physics.pause();
+
+  rockets.clear(true, true);
+  stars.clear(true, true);
+
+  this.tweens.add({
+    targets: player,
+    alpha: 0,
+    ease: "Cubic.easeOut",
+    duration: 500,
+    repeat: 1,
+    yoyo: true,
+    onYoyo: function () {
+      // Reposition player
+      player.setPosition(214, 438);
+      player.setVelocity(0, 0);
+    },
+    onComplete: function () {
+      tweenComplete();
+    },
+  });
 }
 
 function hitRocket(player, rocket) {
@@ -186,7 +203,7 @@ function update() {
   rockets.getChildren().map((rocket) => {
     repositionRocket(this.scene, rocket);
   });
-  if (this.physics.world.isPaused && !gameOver) {
+  if (this.physics.world.isPaused && canResume && !gameOver) {
     if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
       // Recreate Stars
       stars = this.physics.add.group();
@@ -198,6 +215,8 @@ function update() {
       updateRockets(rockets);
       this.physics.add.collider(player, rockets, hitRocket, null, this);
       this.physics.resume();
+
+      canResume = false;
     }
   }
 
