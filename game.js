@@ -53,12 +53,12 @@ function create() {
   updateStars(stars);
 
   // Level
-  levelText = this.add.text(5, 5, "level: " + level, { fontSize: "30px", fill: "#d4996a" });
+  levelText = this.add.text(5, 5, "level:" + level, { fontSize: "30px", fill: "#d4996a" });
   levelText.setStroke("#252945", 2);
   levelText.setDepth(999999999999);
 
   // Score
-  scoreText = this.add.text(5, 35, "score: " + score, { fontSize: "30px", fill: "#d4996a" });
+  scoreText = this.add.text(5, 35, "score:" + score, { fontSize: "30px", fill: "#d4996a" });
   scoreText.setStroke("#252945", 2);
   scoreText.setDepth(999999999999);
 
@@ -91,8 +91,13 @@ function create() {
 
 function collectStar(player, star) {
   star.disableBody(true, true);
-  score += 5;
-  scoreText.setText("score: " + score);
+  score += level * 5;
+  scoreText.setText("score:" + score);
+
+  if (stars.countActive(true) === 0) {
+    score += 50;
+    scoreText.setText("score:" + score);
+  }
 }
 
 function updateStars(stars) {
@@ -142,6 +147,7 @@ function updateRockets(rockets) {
       rocketAsset = rocketAsset == "rocket-green" ? "rocket-pink" : "rocket-green";
       rocket = rockets.create(430, Phaser.Math.Between(50, 400), rocketAsset);
       rocket.setData("left", false);
+      rocket.setFlip(false, true);
       angle = Phaser.Math.Between(-140, -220);
     }
     setRocketVelocity(rocket, angle, velocity);
@@ -177,9 +183,9 @@ function updateRocketRectangles(addToThis, rocketRectangles) {
 function tweenComplete() {
   // Update text
   level++;
-  score += 10;
-  levelText.setText("level: " + level);
-  scoreText.setText("score: " + score);
+  score += level * 10;
+  levelText.setText("level:" + level);
+  scoreText.setText("score:" + score);
 
   canResume = true;
 }
