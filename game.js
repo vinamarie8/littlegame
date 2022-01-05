@@ -7,7 +7,7 @@ var config = {
   physics: {
     default: "arcade",
     arcade: {
-      debug: true,
+      debug: false,
     },
   },
   scene: {
@@ -30,6 +30,8 @@ var level = 1;
 var levelText;
 var score = 0;
 var scoreText;
+var gameOverText;
+var resetGameText;
 
 function preload() {
   this.load.image("background", "assets/background.png");
@@ -42,7 +44,7 @@ function preload() {
 
 function create() {
   // Environment
-  this.add.image(216, 240, "background");
+  background = this.add.image(216, 240, "background");
   startPortal = this.physics.add.sprite(216, 460, "portal");
   endPortal = this.physics.add.sprite(216, 20, "portal");
 
@@ -52,10 +54,12 @@ function create() {
 
   // Level
   levelText = this.add.text(5, 5, "level: " + level, { fontSize: "30px", fill: "#d4996a" });
+  levelText.setStroke("#252945", 2);
   levelText.setDepth(999999999999);
 
   // Score
   scoreText = this.add.text(5, 35, "score: " + score, { fontSize: "30px", fill: "#d4996a" });
+  scoreText.setStroke("#252945", 2);
   scoreText.setDepth(999999999999);
 
   // Rockets
@@ -77,7 +81,6 @@ function create() {
   this.physics.add.overlap(player, stars, collectStar, null, this);
 
   // Character and Rocket
-  //this.physics.add.collider(player, rockets, hitRocket, null, this);
   this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
 
   // Character and End Portal
@@ -209,11 +212,29 @@ function reachEndPortal(player, portal) {
 function hitRocket(player, rocket) {
   this.physics.pause();
 
-  console.log("hit", rocket);
+  // Tint
+  background.setTint(0x848fa1);
+  rockets.setTint(0x848fa1);
+  stars.setTint(0x848fa1);
+  startPortal.setTint(0x848fa1);
+  endPortal.setTint(0x848fa1);
+  player.setTint(0xa13567);
 
-  // TODO: tween ep rotate
-  // TODO: game over text
-  // TODO: reset game
+  // Rotate ep
+  this.tweens.add({
+    targets: player,
+    angle: 360.0,
+    duration: 1500,
+    repeat: -1,
+  });
+
+  // Game Over
+  gameOverText = this.add.text(58, 200, "game over!", { fontSize: "56px", fill: "#79bee0" });
+  gameOverText.setStroke("#252945", 2);
+  gameOverText.setDepth(999999999999);
+  resetGameText = this.add.text(15, 256, "press spacebar to play again", { fontSize: "24px", fill: "#79bee0" });
+  resetGameText.setStroke("#252945", 2);
+  resetGameText.setDepth(999999999999);
 
   gameOver = true;
 }
@@ -253,6 +274,16 @@ function update() {
     repositionRocket(this.scene, rocket);
   });
 
+  if (gameOver && cursors.space.isDown) {
+    // Reset values
+    rocketCount = 0;
+    rocketVelocity = 50;
+    level = 1;
+    score = 0;
+    gameOver = false;
+    this.scene.restart();
+  }
+
   if (this.physics.world.isPaused && canResume && !gameOver) {
     if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
       // Recreate Stars
@@ -272,11 +303,12 @@ function update() {
     }
   }
 
+  var playerVelocity = 180;
   // Left/right
   if (cursors.left.isDown) {
-    player.setVelocityX(-160);
+    player.setVelocityX(-playerVelocity);
   } else if (cursors.right.isDown) {
-    player.setVelocityX(160);
+    player.setVelocityX(playerVelocity);
   } else if (cursors.left.isUp) {
     player.setDragX(dragValue);
   } else if (cursors.right.isUp) {
@@ -285,9 +317,9 @@ function update() {
 
   // Up/down
   if (cursors.up.isDown) {
-    player.setVelocityY(-160);
+    player.setVelocityY(-playerVelocity);
   } else if (cursors.down.isDown) {
-    player.setVelocityY(160);
+    player.setVelocityY(playerVelocity);
   } else if (cursors.up.isUp) {
     player.setDragY(dragValue);
   } else if (cursors.down.isUp) {
