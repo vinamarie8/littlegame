@@ -125,28 +125,38 @@ function setRocketVelocity(rocket, angle, velocity) {
 }
 
 function updateRockets(rockets) {
-  console.log("new rockets");
   if (level % 2 == 0 || level == 1) rocketCount++;
   rocketVelocity = rocketVelocity + 5;
   for (i = 0; i < rocketCount; i++) {
     var rocket;
     var angle;
-    var velocity = rocketVelocity + Phaser.Math.Between(-15, 15);
+    var velocity = rocketVelocity + Phaser.Math.Between(-20, 20);
     if (i % 2 == 0) {
-      rocket = rockets.create(-60, Phaser.Math.Between(50, 400), rocketAsset);
+      rocket = rockets.create(-100, Phaser.Math.Between(50, 400), rocketAsset);
       rocket.setData("left", true);
       angle = Phaser.Math.Between(-60, 60);
     } else {
       rocketAsset = rocketAsset == "rocket-green" ? "rocket-pink" : "rocket-green";
       rocket = rockets.create(430, Phaser.Math.Between(50, 400), rocketAsset);
       rocket.setData("left", false);
-      angle = Phaser.Math.Between(-120, -240);
+      angle = Phaser.Math.Between(-140, -220);
     }
     setRocketVelocity(rocket, angle, velocity);
     rocket.setData("angle", angle);
     rocket.setData("velocity", velocity);
     rocket.setData("rocketName", "rocket-" + i);
   }
+}
+
+function addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity, offsetX, offsetY) {
+  var rectangle = addToThis.add.rectangle(rocket.x + offsetX, rocket.y + offsetY, 40, 40);
+  rocketRectangles.add(rectangle);
+  rectangle.setAngle(angle);
+  rectangle.body.velocity.x = velocity * Math.cos(toRadians(angle));
+  rectangle.body.velocity.y = velocity * Math.sin(toRadians(angle));
+  rectangle.setData("rocketName", rocket.getData("rocketName"));
+  rectangle.setData("offsetX", offsetX);
+  rectangle.setData("offsetY", offsetY);
 }
 
 function updateRocketRectangles(addToThis, rocketRectangles) {
@@ -156,24 +166,8 @@ function updateRocketRectangles(addToThis, rocketRectangles) {
     // 60 is half length of rocket
     var offsetX = (60 * Math.cos(toRadians(angle))) / 2;
     var offsetY = (60 * Math.sin(toRadians(angle))) / 2;
-    // 48 is height of rocket
-    var r1 = addToThis.add.rectangle(rocket.x - offsetX, rocket.y - offsetY, 48, 48);
-    var r2 = addToThis.add.rectangle(rocket.x + offsetX, rocket.y + offsetY, 48, 48);
-    rocketRectangles.add(r1);
-    rocketRectangles.add(r2);
-    r1.setAngle(angle);
-    r2.setAngle(angle);
-    var velocityX = velocity * Math.cos(toRadians(angle));
-    var velocityY = velocity * Math.sin(toRadians(angle));
-    r1.body.velocity.x = r2.body.velocity.x = velocityX;
-    r1.body.velocity.y = r2.body.velocity.y = velocityY;
-    r1.setData("rocketName", rocket.getData("rocketName"));
-    r2.setData("rocketName", rocket.getData("rocketName"));
-    r1.setData("offsetX", -offsetX);
-    r1.setData("offsetY", -offsetY);
-    r2.setData("offsetX", offsetX);
-    r2.setData("offsetY", offsetY);
-    //this.physics.pause();
+    addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity, -offsetX, -offsetY);
+    addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity, offsetX, offsetY);
   });
 }
 
@@ -203,7 +197,7 @@ function reachEndPortal(player, portal) {
     yoyo: true,
     onYoyo: function () {
       // Reposition player
-      player.setPosition(214, 438);
+      player.setPosition(216, 438);
       player.setVelocity(0, 0);
     },
     onComplete: function () {
@@ -231,7 +225,7 @@ function checkInWorld(scene, rocket) {
 function repositionRocket(scene, rocket) {
   if (!checkInWorld(scene, rocket)) {
     if (rocket.getData("left")) {
-      rocket.body.x = -60;
+      rocket.body.x = -100;
     } else {
       rocket.body.x = 430;
     }
@@ -245,7 +239,6 @@ function repositionRocketRectangles(repositionRocket) {
     .getChildren()
     .filter((rocket) => rocket.getData("rocketName") == repositionRocket.getData("rocketName"));
   repositionRectangles.map((rectangle) => {
-    console.log(repositionRocket.body.x);
     rectangle.body.x = repositionRocket.body.x + 38 + rectangle.getData("offsetX");
     rectangle.body.y = repositionRocket.body.y + rectangle.getData("offsetY");
   });
