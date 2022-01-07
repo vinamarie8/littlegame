@@ -34,12 +34,20 @@ var gameOverText;
 var resetGameText;
 
 function preload() {
+  // Images
   this.load.image("background", "assets/background.png");
   this.load.image("portal", "assets/portal.png");
   this.load.image("ep", "assets/ep.png");
   this.load.image("rocket-pink", "assets/rocket-pink.png");
   this.load.image("rocket-green", "assets/rocket-green.png");
   this.load.image("star", "assets/star.png");
+
+  // Sounds
+  this.load.audio("collect-star-audio", ["assets/audio/collect-star.wav"]);
+  this.load.audio("collect-all-stars-audio", ["assets/audio/collect-all-stars.wav"]);
+  this.load.audio("game-over-audio", ["assets/audio/game-over.wav"]);
+  this.load.audio("level-up-audio", ["assets/audio/level-up.wav"]);
+  this.load.audio("background-music", ["assets/audio/background-music.wav"]);
 }
 
 function create() {
@@ -87,6 +95,15 @@ function create() {
   this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
 
   cursors = this.input.keyboard.createCursorKeys();
+
+  // Sounds
+  starSoundEffect = this.sound.add("collect-star-audio");
+  collectAllStarsSoundEffect = this.sound.add("collect-all-stars-audio");
+  gameOverSoundEffect = this.sound.add("game-over-audio");
+  levelUpSoundEffect = this.sound.add("level-up-audio");
+  backgroundMusic = this.sound.add("background-music");
+
+  //backgroundMusic.play({ loop: true, volume: 0.75 });
 }
 
 function collectStar(player, star) {
@@ -94,9 +111,13 @@ function collectStar(player, star) {
   score += level * 5;
   scoreText.setText("score:" + score);
 
+  starSoundEffect.play();
+
   if (stars.countActive(true) === 0) {
     score += 50;
     scoreText.setText("score:" + score);
+    starSoundEffect.stop();
+    collectAllStarsSoundEffect.play();
   }
 }
 
@@ -197,6 +218,10 @@ function reachEndPortal(player, portal) {
   rocketRectangles.clear(true, true);
   stars.clear(true, true);
 
+  starSoundEffect.stop();
+  collectAllStarsSoundEffect.stop();
+  levelUpSoundEffect.play();
+
   this.tweens.add({
     targets: player,
     alpha: 0,
@@ -243,6 +268,11 @@ function hitRocket(player, rocket) {
   resetGameText.setDepth(999999999999);
 
   gameOver = true;
+
+  starSoundEffect.stop();
+  collectAllStarsSoundEffect.stop();
+  levelUpSoundEffect.stop();
+  gameOverSoundEffect.play();
 }
 
 function checkInWorld(scene, rocket) {
