@@ -137,10 +137,13 @@ function updateStars(stars) {
     repeat: 3,
     setXY: { x: 80, y: 320, stepX: 100 },
   });
+  var starCount = 1;
   stars.getChildren().map((star) => {
     star.setVelocity(Phaser.Math.Between(-20, 20), Phaser.Math.Between(-20, 20));
     star.setCollideWorldBounds(true);
     star.setBounce(1);
+    star.setDepth(starCount % 2 == 0 ? 1 : 3);
+    starCount++;
   });
 }
 
@@ -175,6 +178,7 @@ function updateRockets(rockets) {
     rocket.setData("angle", angle);
     rocket.setData("velocity", velocity);
     rocket.setData("rocketName", "rocket-" + i);
+    rocket.setDepth(2);
   }
 }
 
