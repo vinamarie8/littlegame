@@ -33,6 +33,8 @@ var scoreText;
 var gameOverText;
 var resetGameText;
 
+var rocketCollider;
+
 function preload() {
   // Images
   this.load.image("background", "assets/background.png");
@@ -89,7 +91,7 @@ function create() {
   this.physics.add.overlap(player, stars, collectStar, null, this);
 
   // Character and Rocket
-  this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+  rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
 
   // Character and End Portal
   this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
@@ -118,6 +120,8 @@ function collectStar(player, star) {
     scoreText.setText("score:" + score);
     starSoundEffect.stop();
     collectAllStarsSoundEffect.play();
+    rocketCollider.active = false;
+    player.setBlendMode(Phaser.BlendModes.ADD);
   }
 }
 
@@ -225,6 +229,7 @@ function reachEndPortal(player, portal) {
   starSoundEffect.stop();
   collectAllStarsSoundEffect.stop();
   levelUpSoundEffect.play();
+  player.setBlendMode(Phaser.BlendModes.NORMAL);
 
   this.tweens.add({
     targets: player,
@@ -321,6 +326,7 @@ function update() {
     level = 1;
     score = 0;
     gameOver = false;
+    player.setBlendMode(Phaser.BlendModes.NORMAL);
     this.scene.restart();
   }
 
@@ -336,7 +342,7 @@ function update() {
       updateRockets(rockets);
       rocketRectangles = this.physics.add.group();
       updateRocketRectangles(this, rocketRectangles);
-      this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+      rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
       this.physics.resume();
 
       canResume = false;
