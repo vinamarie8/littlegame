@@ -102,6 +102,12 @@ function create() {
   this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
 
   cursors = this.input.keyboard.createCursorKeys();
+  wasdCursors = this.input.keyboard.addKeys({
+    up: Phaser.Input.Keyboard.KeyCodes.W,
+    down: Phaser.Input.Keyboard.KeyCodes.S,
+    left: Phaser.Input.Keyboard.KeyCodes.A,
+    right: Phaser.Input.Keyboard.KeyCodes.D,
+  });
 
   // Sounds
   starSoundEffect = this.sound.add("collect-star-audio");
@@ -336,7 +342,16 @@ function update() {
   }
 
   if (this.physics.world.isPaused && canResume && !gameOver) {
-    if (cursors.left.isUp && cursors.right.isUp && cursors.up.isUp && cursors.down.isUp) {
+    if (
+      cursors.left.isUp &&
+      cursors.right.isUp &&
+      cursors.up.isUp &&
+      cursors.down.isUp &&
+      wasdCursors.left.isUp &&
+      wasdCursors.right.isUp &&
+      wasdCursors.up.isUp &&
+      wasdCursors.down.isUp
+    ) {
       // Recreate Stars
       stars = this.physics.add.group();
       updateStars(stars);
@@ -349,6 +364,8 @@ function update() {
       rocketRectangles = this.physics.add.group();
       updateRocketRectangles(this, rocketRectangles);
       rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+
+      // Resume game
       this.physics.resume();
 
       canResume = false;
@@ -357,24 +374,24 @@ function update() {
 
   var playerVelocity = 180;
   // Left/right
-  if (cursors.left.isDown) {
+  if (cursors.left.isDown || wasdCursors.left.isDown) {
     player.setVelocityX(-playerVelocity);
-  } else if (cursors.right.isDown) {
+  } else if (cursors.right.isDown || wasdCursors.right.isDown) {
     player.setVelocityX(playerVelocity);
-  } else if (cursors.left.isUp) {
+  } else if (cursors.left.isUp || wasdCursors.left.isUp) {
     player.setDragX(dragValue);
-  } else if (cursors.right.isUp) {
+  } else if (cursors.right.isUp || wasdCursors.right.isUp) {
     player.setDragX(dragValue);
   }
 
   // Up/down
-  if (cursors.up.isDown) {
+  if (cursors.up.isDown || wasdCursors.up.isDown) {
     player.setVelocityY(-playerVelocity);
-  } else if (cursors.down.isDown) {
+  } else if (cursors.down.isDown || wasdCursors.down.isDown) {
     player.setVelocityY(playerVelocity);
-  } else if (cursors.up.isUp) {
+  } else if (cursors.up.isUp || wasdCursors.up.isUp) {
     player.setDragY(dragValue);
-  } else if (cursors.down.isUp) {
+  } else if (cursors.down.isUp || wasdCursors.down.isUp) {
     player.setDragY(dragValue);
   }
 }
