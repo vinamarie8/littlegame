@@ -34,6 +34,7 @@ var gameOverText;
 var resetGameText;
 
 var rocketCollider;
+var rocketColliderStarPower;
 
 function preload() {
   // Images
@@ -96,7 +97,9 @@ function create() {
   this.physics.add.overlap(player, stars, collectStar, null, this);
 
   // Character and Rocket
-  rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+  //rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+  rocketColliderStarPower = this.physics.add.collider(player, rocketRectangles, hitRocketStarPower, null, this);
+  //rocketColliderStarPower.active = false;
 
   // Character and End Portal
   this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
@@ -113,6 +116,22 @@ function create() {
   //backgroundMusic.play({ loop: true, volume: 0.75 });
 }
 
+function hitRocketStarPower(player, hitRectangle) {
+  rocketRectangles.getChildren().map((rectangle) => {
+    if (rectangle.getData("rocketName") == hitRectangle.getData("rocketName")) {
+      rectangle.body.velocity.x = hitRectangle.body.velocity.x;
+      rectangle.body.velocity.y = hitRectangle.body.velocity.y;
+    }
+  });
+  rockets.getChildren().map((rocket) => {
+    if (rocket.getData("rocketName") == hitRectangle.getData("rocketName")) {
+      console.log(rocket.getData("left"));
+      rocket.body.velocity.x = hitRectangle.body.velocity.x;
+      rocket.body.velocity.y = hitRectangle.body.velocity.y;
+    }
+  });
+}
+
 function collectStar(player, star) {
   star.disableBody(true, true);
   score += level * 5;
@@ -126,6 +145,7 @@ function collectStar(player, star) {
     starSoundEffect.stop();
     collectAllStarsSoundEffect.play();
     rocketCollider.active = false;
+    rocketColliderStarPower.active = true;
     player.setBlendMode(Phaser.BlendModes.ADD);
   }
 }
@@ -195,6 +215,7 @@ function addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity
   var rectangle = addToThis.add.rectangle(rocket.x + offsetX, rocket.y + offsetY, 40, 40);
   rocketRectangles.add(rectangle);
   rectangle.setAngle(angle);
+  rectangle.body.setBounce(0.25);
   rectangle.body.velocity.x = velocity * Math.cos(toRadians(angle));
   rectangle.body.velocity.y = velocity * Math.sin(toRadians(angle));
   rectangle.setData("rocketName", rocket.getData("rocketName"));
@@ -295,13 +316,24 @@ function checkInWorld(scene, rocket) {
 
 function repositionRocket(scene, rocket) {
   if (!checkInWorld(scene, rocket)) {
-    if (rocket.getData("left")) {
-      rocket.body.x = -100;
+    if (rocketColliderStarPower.active == true) {
+      // If star power active, rocket velocity can be changed
+      // "left" attribute may no longer be valid
+      // TODO: account for different x/y values that are out of world bounds
+      // console.log(rocket.body.x, rocket.body.y);
+      if (rocket.body.y > 480) {
+        rocket.body.y = 20;
+      }
     } else {
-      rocket.body.x = 430;
+      if (rocket.getData("left")) {
+        rocket.body.x = -100;
+      } else {
+        rocket.body.x = 430;
+      }
+      rocket.body.y = Phaser.Math.Between(50, 400);
+      setRocketVelocity(rocket, rocket.getData("angle"), rocket.getData("velocity"));
+      repositionRocketRectangles(rocket);
     }
-    rocket.body.y = Phaser.Math.Between(50, 400);
-    repositionRocketRectangles(rocket);
   }
 }
 
@@ -309,9 +341,15 @@ function repositionRocketRectangles(repositionRocket) {
   var repositionRectangles = rocketRectangles
     .getChildren()
     .filter((rocket) => rocket.getData("rocketName") == repositionRocket.getData("rocketName"));
+  var rocket = rockets
+    .getChildren()
+    .filter((rocket) => rocket.getData("rocketName") == repositionRocket.getData("rocketName"));
   repositionRectangles.map((rectangle) => {
     rectangle.body.x = repositionRocket.body.x + 38 + rectangle.getData("offsetX");
     rectangle.body.y = repositionRocket.body.y + rectangle.getData("offsetY");
+    rectangle.body.angle = rocket[0].getData("angle");
+    rectangle.body.velocity.x = rocket[0].getData("velocity") * Math.cos(toRadians(rocket[0].getData("angle")));
+    rectangle.body.velocity.y = rocket[0].getData("velocity") * Math.sin(toRadians(rocket[0].getData("angle")));
   });
 }
 
@@ -348,7 +386,9 @@ function update() {
       updateRockets(rockets);
       rocketRectangles = this.physics.add.group();
       updateRocketRectangles(this, rocketRectangles);
-      rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+      //rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+      rocketColliderStarPower = this.physics.add.collider(player, rocketRectangles, hitRocketStarPower, null, this);
+      //rocketColliderStarPower.active = false;
       this.physics.resume();
 
       canResume = false;
