@@ -53,14 +53,19 @@ function preload() {
 }
 
 function create() {
-  // Environment
+  // Background
   background = this.add.image(216, 240, "background");
+
+  // Portals
   startPortal = this.physics.add.sprite(216, 460, "portal");
   endPortal = this.physics.add.sprite(216, 20, "portal");
+  endPortal.setSize(80, 20);
+  endPortal.setImmovable(true);
 
   // Stars
   stars = this.physics.add.group();
   updateStars(stars);
+  this.physics.add.collider(endPortal, stars);
 
   // Level
   levelText = this.add.text(5, 5, "level:" + level, { fontSize: "30px", fill: "#d4996a" });
@@ -335,6 +340,7 @@ function update() {
       // Recreate Stars
       stars = this.physics.add.group();
       updateStars(stars);
+      this.physics.add.collider(endPortal, stars);
       this.physics.add.overlap(player, stars, collectStar, null, this);
 
       // Recreate Rockets
