@@ -16,6 +16,7 @@ var config = {
     update: update,
   },
   autoCenter: true,
+  parent: "game-div",
 };
 
 var game = new Phaser.Game(config);
