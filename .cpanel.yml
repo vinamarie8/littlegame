@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home1/vinamar1/public_html/littlegame
+    - /bin/cp -R * $DEPLOYPATH
