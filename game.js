@@ -47,13 +47,17 @@ function preload() {
 
   // Sounds
   this.load.audio("collect-star-audio", ["assets/audio/collect-star.wav"]);
-  this.load.audio("collect-all-stars-audio", ["assets/audio/collect-all-stars.wav"]);
+  this.load.audio("collect-all-stars-audio", [
+    "assets/audio/collect-all-stars.wav",
+  ]);
   this.load.audio("game-over-audio", ["assets/audio/game-over.wav"]);
   this.load.audio("level-up-audio", ["assets/audio/level-up.wav"]);
   this.load.audio("background-music", ["assets/audio/background-music.wav"]);
 }
 
 function create() {
+  console.log("useragent?", navigator.userAgent);
+
   // Background
   background = this.add.image(216, 240, "background");
 
@@ -69,12 +73,18 @@ function create() {
   this.physics.add.collider(endPortal, stars);
 
   // Level
-  levelText = this.add.text(5, 5, "level:" + level, { fontSize: "30px", fill: "#d4996a" });
+  levelText = this.add.text(5, 5, "level:" + level, {
+    fontSize: "30px",
+    fill: "#d4996a",
+  });
   levelText.setStroke("#252945", 2);
   levelText.setDepth(999999999999);
 
   // Score
-  scoreText = this.add.text(5, 35, "score:" + score, { fontSize: "30px", fill: "#d4996a" });
+  scoreText = this.add.text(5, 35, "score:" + score, {
+    fontSize: "30px",
+    fill: "#d4996a",
+  });
   scoreText.setStroke("#252945", 2);
   scoreText.setDepth(999999999999);
 
@@ -97,7 +107,13 @@ function create() {
   this.physics.add.overlap(player, stars, collectStar, null, this);
 
   // Character and Rocket
-  rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+  rocketCollider = this.physics.add.collider(
+    player,
+    rocketRectangles,
+    hitRocket,
+    null,
+    this
+  );
 
   // Character and End Portal
   this.physics.add.overlap(player, endPortal, reachEndPortal, null, this);
@@ -118,6 +134,16 @@ function create() {
   backgroundMusic = this.sound.add("background-music");
 
   //backgroundMusic.play({ loop: true, volume: 0.75 });
+
+  // Check for mobile device
+  console.log("useragent", navigator.userAgent);
+  if (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  ) {
+    console.log("mobile device");
+  }
 }
 
 function collectStar(player, star) {
@@ -155,7 +181,10 @@ function updateStars(stars) {
   });
   var starCount = 1;
   stars.getChildren().map((star) => {
-    star.setVelocity(Phaser.Math.Between(-20, 20), Phaser.Math.Between(-20, 20));
+    star.setVelocity(
+      Phaser.Math.Between(-20, 20),
+      Phaser.Math.Between(-20, 20)
+    );
     star.setCollideWorldBounds(true);
     star.setBounce(1);
     star.setDepth(starCount % 2 == 0 ? 1 : 3);
@@ -169,7 +198,10 @@ function toRadians(angle) {
 
 function setRocketVelocity(rocket, angle, velocity) {
   rocket.setAngle(angle);
-  rocket.setVelocity(velocity * Math.cos(toRadians(angle)), velocity * Math.sin(toRadians(angle)));
+  rocket.setVelocity(
+    velocity * Math.cos(toRadians(angle)),
+    velocity * Math.sin(toRadians(angle))
+  );
 }
 
 function updateRockets(rockets) {
@@ -184,7 +216,8 @@ function updateRockets(rockets) {
       rocket.setData("left", true);
       angle = Phaser.Math.Between(-60, 60);
     } else {
-      rocketAsset = rocketAsset == "rocket-green" ? "rocket-pink" : "rocket-green";
+      rocketAsset =
+        rocketAsset == "rocket-green" ? "rocket-pink" : "rocket-green";
       rocket = rockets.create(430, Phaser.Math.Between(50, 400), rocketAsset);
       rocket.setData("left", false);
       rocket.setFlip(false, true);
@@ -198,8 +231,21 @@ function updateRockets(rockets) {
   }
 }
 
-function addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity, offsetX, offsetY) {
-  var rectangle = addToThis.add.rectangle(rocket.x + offsetX, rocket.y + offsetY, 40, 40);
+function addRocketRectangle(
+  addToThis,
+  rocketRectangles,
+  rocket,
+  angle,
+  velocity,
+  offsetX,
+  offsetY
+) {
+  var rectangle = addToThis.add.rectangle(
+    rocket.x + offsetX,
+    rocket.y + offsetY,
+    40,
+    40
+  );
   rocketRectangles.add(rectangle);
   rectangle.setAngle(angle);
   rectangle.body.velocity.x = velocity * Math.cos(toRadians(angle));
@@ -216,8 +262,24 @@ function updateRocketRectangles(addToThis, rocketRectangles) {
     // 60 is half length of rocket
     var offsetX = (60 * Math.cos(toRadians(angle))) / 2;
     var offsetY = (60 * Math.sin(toRadians(angle))) / 2;
-    addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity, -offsetX, -offsetY);
-    addRocketRectangle(addToThis, rocketRectangles, rocket, angle, velocity, offsetX, offsetY);
+    addRocketRectangle(
+      addToThis,
+      rocketRectangles,
+      rocket,
+      angle,
+      velocity,
+      -offsetX,
+      -offsetY
+    );
+    addRocketRectangle(
+      addToThis,
+      rocketRectangles,
+      rocket,
+      angle,
+      velocity,
+      offsetX,
+      offsetY
+    );
   });
 }
 
@@ -281,10 +343,16 @@ function hitRocket(player, rocket) {
   });
 
   // Game Over
-  gameOverText = this.add.text(58, 200, "game over!", { fontSize: "56px", fill: "#79bee0" });
+  gameOverText = this.add.text(58, 200, "game over!", {
+    fontSize: "56px",
+    fill: "#79bee0",
+  });
   gameOverText.setStroke("#252945", 2);
   gameOverText.setDepth(999999999999);
-  resetGameText = this.add.text(15, 256, "press spacebar to play again", { fontSize: "24px", fill: "#79bee0" });
+  resetGameText = this.add.text(15, 256, "press spacebar to play again", {
+    fontSize: "24px",
+    fill: "#79bee0",
+  });
   resetGameText.setStroke("#252945", 2);
   resetGameText.setDepth(999999999999);
 
@@ -297,7 +365,10 @@ function hitRocket(player, rocket) {
 }
 
 function checkInWorld(scene, rocket) {
-  return Phaser.Geom.Rectangle.Overlaps(scene.scene.physics.world.bounds, rocket.getBounds());
+  return Phaser.Geom.Rectangle.Overlaps(
+    scene.scene.physics.world.bounds,
+    rocket.getBounds()
+  );
 }
 
 function repositionRocket(scene, rocket) {
@@ -315,9 +386,13 @@ function repositionRocket(scene, rocket) {
 function repositionRocketRectangles(repositionRocket) {
   var repositionRectangles = rocketRectangles
     .getChildren()
-    .filter((rocket) => rocket.getData("rocketName") == repositionRocket.getData("rocketName"));
+    .filter(
+      (rocket) =>
+        rocket.getData("rocketName") == repositionRocket.getData("rocketName")
+    );
   repositionRectangles.map((rectangle) => {
-    rectangle.body.x = repositionRocket.body.x + 38 + rectangle.getData("offsetX");
+    rectangle.body.x =
+      repositionRocket.body.x + 38 + rectangle.getData("offsetX");
     rectangle.body.y = repositionRocket.body.y + rectangle.getData("offsetY");
   });
 }
@@ -364,7 +439,13 @@ function update() {
       updateRockets(rockets);
       rocketRectangles = this.physics.add.group();
       updateRocketRectangles(this, rocketRectangles);
-      rocketCollider = this.physics.add.collider(player, rocketRectangles, hitRocket, null, this);
+      rocketCollider = this.physics.add.collider(
+        player,
+        rocketRectangles,
+        hitRocket,
+        null,
+        this
+      );
 
       // Resume game
       this.physics.resume();
